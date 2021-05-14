@@ -1,15 +1,20 @@
 
+
+import numpy as np
+import pytz as pytz
 from os import path
+import functions as fun
 import xmltodict as xtd
 import cartopy.crs as ccrs
+from datetime import datetime
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 # https://scitools.org.uk/cartopy/docs/latest/matplotlib/intro.html
 
 ###############################################################################
 # Constants
 ###############################################################################
-KEYS = ('Time', 'Position', 'AltitudeMeters', 'DistanceMeters', 'Extensions')
 
 ###############################################################################
 # Inputs
@@ -21,8 +26,7 @@ fName = '2021_05_13_02.tcx'
 # Read XML
 ###############################################################################
 fPath = path.join(PATH, fName)
-with open(fPath) as fd:
-    doc = xtd.parse(fd.read())
+doc = fun.readTCX(fPath)
 doc.keys()
 
 ###############################################################################
@@ -30,43 +34,30 @@ doc.keys()
 ###############################################################################
 lap = doc['TrainingCenterDatabase']['Activities']['Activity']['Lap']
 track = lap['Track']['Trackpoint']
-
-lap.keys()
+route = fun.getRoute(track)
+meanRoute = fun.getRouteStat(route)
 
 ###############################################################################
 # Iterate segments
 #   Speed seems to be (m/s)
 ###############################################################################
-seg = track[0]
-(time, pos, alt, dist, ext) = [seg[k] for k in KEYS]
-(lat, lon) = [float(pos[k]) for k in ('LatitudeDegrees', 'LongitudeDegrees')]
-speed = float(ext['TPX']['Speed'])
+pad = 0.025
 
-###############################################################################
-# Map
-###############################################################################
+fig = plt.figure(figsize=(12, 12))
 ax = plt.axes(projection=ccrs.PlateCarree())
 ax.stock_img()
+ptsNum = len(track)
+for tix in range(0, ptsNum-1):
+    (sS, sE) = [route[i] for i in (tix, tix+1)]
+    plt.plot(
+        [sS['lon'], sE['lon']], 
+        [sS['lat'], sE['lat']],
+        color='blue', linewidth=2, # marker='o',
+        transform=ccrs.Geodetic()
+    )
+(cLat, cLon) = (meanRoute['lat'], meanRoute['lon'])
+ax.set_extent(
+    [cLon-pad, cLon+pad, cLat-pad, cLat+pad], 
+    crs=ccrs.PlateCarree()
+)
 
-ny_lon, ny_lat = -75, 43
-delhi_lon, delhi_lat = 77.23, 28.61
-
-plt.plot([ny_lon, delhi_lon], [ny_lat, delhi_lat],
-         color='blue', linewidth=2, marker='o',
-         transform=ccrs.Geodetic(),
-         )
-
-plt.plot([ny_lon, delhi_lon], [ny_lat, delhi_lat],
-         color='gray', linestyle='--',
-         transform=ccrs.PlateCarree(),
-         )
-
-plt.text(ny_lon - 3, ny_lat - 12, 'New York',
-         horizontalalignment='right',
-         transform=ccrs.Geodetic())
-
-plt.text(delhi_lon + 3, delhi_lat - 12, 'Delhi',
-         horizontalalignment='left',
-         transform=ccrs.Geodetic())
-
-plt.show()
