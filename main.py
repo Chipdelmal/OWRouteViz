@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pytz as pytz
 from os import path
@@ -14,85 +12,87 @@ import cartopy.io.img_tiles as cimgt
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 
-# https://scitools.org.uk/cartopy/docs/latest/matplotlib/intro.html
-
 ###############################################################################
 # Constants
 ###############################################################################
-cmap = cm.Purples_r
-norm = Normalize(vmin=0, vmax=8)
-imagery = None # cimgt.GoogleTiles() imagery = OSM()
+(CMAP, SPEED_NORM) = (
+    cm.Purples_r,
+    Normalize(vmin=0, vmax=8)
+)
+PAD = 0.005
+IMAGERY = None 
+PRE_MAP = None
+FIG_SIZE = (6, 6)
+PROJ = ccrs.PlateCarree()
 
 ###############################################################################
 # Inputs
 ###############################################################################
 PATH = '/home/chipdelmal/Documents/OneWheel'
-fName = '2021_05_15-01'
+fNames = [
+    '2021_05_13-01', '2021_05_13-02', 
+    '2021_05_15-01', '2021_05_15-02'
+]
+imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
 
 ###############################################################################
-# Read XML
+# Get BBox
 ###############################################################################
-fPath = path.join(PATH, fName+'.tcx')
-doc = fun.readTCX(fPath)
-doc.keys()
+fPaths = [path.join(PATH, '{}.tcx'.format(fName)) for fName in fNames]
+bbox = fun.getBBoxFromFiles(fPaths)
 
 ###############################################################################
 # Get Laps and segments
 ###############################################################################
-lap = doc['TrainingCenterDatabase']['Activities']['Activity']['Lap']
-track = lap['Track']['Trackpoint']
-route = fun.getRoute(track)
+fName = fNames[1]
+file = path.join(PATH, '{}.tcx'.format(fName))
+route = fun.getRouteFromFile(file)
 meanRoute = fun.getRouteStat(route, fStat=np.median)
-ptsNum = len(track)
+ptsNum = len(route)
+
 
 ###############################################################################
 # Iterate segments
 #   Speed seems to be (m/s)
 ###############################################################################
-POINTS = False
-pad = 0.0125
-# (cLat, cLon) = (meanRoute['lat'], meanRoute['lon'])
 (cLat, cLon) = (37.877928, -122.292065)
-
-
-
-pth = path.join(PATH, 'img', "2021_05_13_01-final.png")
-xy = fun.getRouteArray(route).T
+extent = [
+    bbox['lon'][0]-PAD, bbox['lon'][1]+PAD, 
+    bbox['lat'][0]-PAD, bbox['lat'][1]+PAD
+]
 # Generate figure -------------------------------------------------------------
-(fig, ax) = (
-    plt.figure(figsize=(6, 6)),
-    plt.axes(projection=ccrs.PlateCarree())
-)
-ax.set_extent(
-    [cLon-pad, cLon+pad, cLat-pad, cLat+pad], 
-    crs=ccrs.PlateCarree()
-)
+(fig, ax) = (plt.figure(figsize=FIG_SIZE), plt.axes(projection=PROJ))
+ax.set_extent(extent, crs=PROJ)
 # Add imagery if available ----------------------------------------------------
-if imagery is not None:
+if IMAGERY is not None:
     ax.add_image(imagery, 14)
 else:
     ax.set_facecolor("black")
 # Add previously generated map ------------------------------------------------
-if preMap is not None:
-    ax.imshow(
-        plt.imread(pth), 
-        extent=[cLon-pad, cLon+pad, cLat-pad, cLat+pad]
-    )
+if PRE_MAP is not None:
+    imgFg = plt.imread(imgFgPth)
+    ax.imshow(imgFg, extent=extent)
 # Loop over segments of the track ---------------------------------------------
 for tix in range(0, ptsNum-1):
     (sS, sE) = [route[i] for i in (tix, tix+1)]
     plt.plot(
         [sS['lon'], sE['lon']], 
         [sS['lat'], sE['lat']],
-        color=cmap(norm(sE['speed'])),
-        alpha=.8,
-        linewidth=1, solid_capstyle='round',
-        # marker='o', markersize=1,
+        color=CMAP(SPEED_NORM(sE['speed'])),
+        alpha=.75, linewidth=1, 
+        solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
     tixPad = str(tix).zfill(4)
     fimgName = path.join(PATH, 'img', '{}-{}.png'.format(fName, tixPad))
     fig.savefig(fimgName, dpi=250, bbox_inches='tight', pad_inches=0)
+# Export final frame in transparent mode --------------------------------------
+fimgName = path.join(PATH, 'img', '{}-{}.png'.format(fName, 'final'))
+fig.savefig(
+    fimgName, dpi=250, bbox_inches='tight', 
+    pad_inches=0, transparent=True
+)
+# Clearing and closing (fig, ax) ----------------------------------------------
 plt.cla() 
 plt.clf() 
 plt.close(fig)

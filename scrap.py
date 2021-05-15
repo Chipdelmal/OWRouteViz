@@ -1,3 +1,9 @@
+
+# https://scitools.org.uk/cartopy/docs/latest/matplotlib/intro.html
+
+imagery = cimgt.GoogleTiles() 
+imagery = OSM()
+
 ptsNum = len(track)
 xy = fun.getRouteArray(route).T
 for tix in range(1, ptsNum):
