@@ -38,11 +38,32 @@ def getRoute(track, segKeys=KEYS, timezone='US/Pacific'):
     return route
 
 
-def getRouteStat(route, mtr=('lon', 'lat', 'alt', 'speed'), fStat=np.mean):
+def getRouteArray(route, mtr=('lon', 'lat', 'alt', 'speed')):
     ptsNum = len(route)
     coords = np.zeros((ptsNum, len(mtr)))
     for tix in range(0, ptsNum):
         seg = route[tix]
         coords[tix] = [seg[m] for m in mtr]
+    return coords
+
+
+def getRouteStat(route, mtr=('lon', 'lat', 'alt', 'speed'), fStat=np.mean):
+    coords = getRouteArray(route)
     center = fStat(coords, axis=0)
     return {m:v for (m, v) in zip(mtr, center)}
+
+
+def generateColorSwatch(
+    baseColor, levels,
+    alphaOffset=(.1, .9), lumaOffset=(.1, 1),
+):
+    colorsList = [None] * levels
+    for i in range(levels):
+        c = Color(baseColor)
+        baseLum = lumaOffset[1] - c.get_luminance()
+        lumLevel = (baseLum - ((lumaOffset[1]-baseLum)/levels * i)) + (lumaOffset[0])
+        c.set_luminance(lumLevel)
+        rgb = c.get_rgb()
+        alphaLevel = alphaOffset[0] + ((alphaOffset[1]-alphaOffset[0]) * i/levels)
+        colorsList[i] = (rgb[0], rgb[1], rgb[2], alphaLevel)
+    return colorsList
