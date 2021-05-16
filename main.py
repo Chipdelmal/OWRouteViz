@@ -1,7 +1,9 @@
+import sys
 import numpy as np
 import pytz as pytz
 from os import path
 import functions as fun
+import constants as cst
 import xmltodict as xtd
 import cartopy.crs as ccrs
 from datetime import datetime
@@ -17,13 +19,14 @@ import matplotlib.patches as patches
 # Constants
 ###############################################################################
 (CMAP, SPEED_NORM) = (
-    cm.Purples_r,
-    Normalize(vmin=0, vmax=8)
+    cst.CMAP_W, # cm.Purples_r,
+    Normalize(vmin=-2, vmax=7.5)
 )
+FRATE = 5
 PAD = 0.005
 IMAGERY = cimgt.GoogleTiles() # None 
 PRE_MAP = None
-FIG_SIZE = (6, 6)
+FIG_SIZE = (5, 5)
 PROJ = ccrs.PlateCarree()
 
 ###############################################################################
@@ -32,7 +35,8 @@ PROJ = ccrs.PlateCarree()
 PATH = '/home/chipdelmal/Documents/OneWheel'
 fNames = [
     '2021_05_13-01', '2021_05_13-02', 
-    '2021_05_15-01', '2021_05_15-02'
+    '2021_05_15-01', '2021_05_15-02',
+    '2021_05_16-01', '2021_05_16-02'
 ]
 imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
 
@@ -51,6 +55,25 @@ extent = [
 ###############################################################################
 (fig, ax) = (plt.figure(figsize=FIG_SIZE), plt.axes(projection=PROJ))
 ax.set_extent(extent, crs=PROJ)
+# Add previously generated map ------------------------------------------------
+if PRE_MAP is not None:
+    imgFg = plt.imread(fimgName)
+    ax.imshow(imgFg, extent=extent)
+# Add imagery if available ----------------------------------------------------
+if IMAGERY is not None:
+    ax.add_image(IMAGERY, 14)
+    ax.add_patch(
+        patches.Rectangle(
+            (extent[0], extent[2]),
+            (extent[1]-extent[0]), (extent[3]-extent[2]),
+            edgecolor=None, facecolor='#000000E8',
+            fill=True
+        )
+    )
+else:
+    ax.set_facecolor("#000000")
+plt.gcf().set_facecolor('black')
+# Iterate through frames ------------------------------------------------------
 tFrames = 0
 for (fNum, fName) in enumerate(fNames):
     ###########################################################################
@@ -64,40 +87,32 @@ for (fNum, fName) in enumerate(fNames):
     # Iterate segments
     #   Speed seems to be (m/s)
     ###########################################################################
-    # Add imagery if available ------------------------------------------------
-    if IMAGERY is not None:
-        ax.add_image(IMAGERY, 14)
-        ax.add_patch(
-            patches.Rectangle(
-                (extent[0], extent[2]),
-                (extent[1]-extent[0]), (extent[3]-extent[2]),
-                edgecolor='#00000000', facecolor='#000000CC',
-                fill=True
-            )
-        )
-    else:
-        ax.set_facecolor("#000000")
-    # Add previously generated map --------------------------------------------
-    if PRE_MAP is not None:
-        imgFg = plt.imread(imgFgPth)
-        ax.imshow(imgFg, extent=extent)
     # Loop over segments of the track -----------------------------------------
+    pString = '* Progress ({}/{}): {}/{}'
     for tix in range(0, ptsNum-1):
-        (sS, sE) = [route[i] for i in (tix, tix+1)]
-        plt.plot(
-            [sS['lon'], sE['lon']], 
-            [sS['lat'], sE['lat']],
-            color=CMAP(SPEED_NORM(sE['speed'])),
-            alpha=.75, linewidth=.5, 
-            solid_capstyle='round',
-            transform=ccrs.Geodetic()
-        )
-        tixPad = str(tFrames).zfill(8)
-        fimgName = path.join(PATH, 'img', '{}.png'.format(tixPad))
-        fig.savefig(fimgName, dpi=250, bbox_inches='tight', pad_inches=0)
-        tFrames = tFrames + 1
+        print(pString.format(fNum+1, len(fNames), tix+1, ptsNum), end='\r')
+        if (tix % FRATE == 0) and (tix < ptsNum-FRATE):
+            (sS, sE) = [route[i] for i in (tix, tix+FRATE)]
+            # Render new elements ---------------------------------------------
+            plt.plot(
+                [sS['lon'], sE['lon']], 
+                [sS['lat'], sE['lat']],
+                color=CMAP(SPEED_NORM(sE['speed'])),
+                alpha=min(1.25 * CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                linewidth=.5, 
+                solid_capstyle='round',
+                transform=ccrs.Geodetic()
+            )
+            ax.set_extent(extent, crs=ccrs.PlateCarree())
+            # Filename and export ---------------------------------------------
+            tixPad = str(tFrames).zfill(8)
+            fimgName = path.join(PATH, 'img', '{}.png'.format(tixPad))
+            fig.savefig(fimgName, dpi=250, bbox_inches='tight', pad_inches=0)
+            # Update frames counter -------------------------------------------
+            tFrames = tFrames + 1
+    sys.stdout.write("\033[K")
 # Clearing and closing (fig, ax) ----------------------------------------------
+plt.clf()
 plt.cla() 
-plt.clf() 
 plt.close(fig)
 plt.gcf()
