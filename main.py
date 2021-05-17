@@ -20,14 +20,15 @@ import matplotlib.patches as patches
 ###############################################################################
 (CMAP, SPEED_NORM) = (
     cst.CMAP_W, # cm.Purples_r,
-    Normalize(vmin=-2, vmax=7.5)
+    Normalize(vmin=0, vmax=6.5)
 )
-FRATE = 5
+(FRATE, PRATE) = (2, 20)
 PAD = 0.005
 IMAGERY = cimgt.GoogleTiles() # None 
 PRE_MAP = None
-FIG_SIZE = (5, 5)
+FIG_SIZE = (8, 8)
 PROJ = ccrs.PlateCarree()
+POINTS = False
 
 ###############################################################################
 # Inputs
@@ -91,25 +92,36 @@ for (fNum, fName) in enumerate(fNames):
     pString = '* Progress ({}/{}): {}/{}'
     for tix in range(0, ptsNum-1):
         print(pString.format(fNum+1, len(fNames), tix+1, ptsNum), end='\r')
-        if (tix % FRATE == 0) and (tix < ptsNum-FRATE):
+        if (tix%FRATE==0) and (tix<ptsNum-FRATE):
             (sS, sE) = [route[i] for i in (tix, tix+FRATE)]
             # Render new elements ---------------------------------------------
             plt.plot(
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
                 color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=min(1.25 * CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                linewidth=.5, 
+                alpha=min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                linewidth=.8, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
             )
             ax.set_extent(extent, crs=ccrs.PlateCarree())
+            # Plot markers ----------------------------------------------------
+            if (POINTS) and (tix%PRATE==0) and (tix<ptsNum-PRATE):
+                plt.plot(
+                    sS['lon'], sS['lat'],
+                    color=CMAP(SPEED_NORM(sE['speed'])), 
+                    alpha=1, # min(1.25*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                    marker='o', markersize=3,
+                    markeredgewidth=.75, markeredgecolor='black',
+                    linewidth=0,
+                    transform=ccrs.Geodetic()
+                )
             # Filename and export ---------------------------------------------
             tixPad = str(tFrames).zfill(8)
             fimgName = path.join(PATH, 'img', '{}.png'.format(tixPad))
-            fig.savefig(fimgName, dpi=250, bbox_inches='tight', pad_inches=0)
+            fig.savefig(fimgName, dpi=300, bbox_inches='tight', pad_inches=0)
             # Update frames counter -------------------------------------------
-            tFrames = tFrames + 1
+            tFrames = tFrames+1
     sys.stdout.write("\033[K")
 # Clearing and closing (fig, ax) ----------------------------------------------
 plt.clf()
