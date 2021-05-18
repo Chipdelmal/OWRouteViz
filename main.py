@@ -22,13 +22,13 @@ import matplotlib.patches as patches
     cst.CMAP_W, # cm.Purples_r,
     Normalize(vmin=0, vmax=6.5)
 )
-(FRATE, PRATE) = (2, 20)
+(FRATE, PRATE) = (1, 60)
 PAD = 0.005
 IMAGERY = cimgt.GoogleTiles() # None 
 PRE_MAP = None
 FIG_SIZE = (8, 8)
 PROJ = ccrs.PlateCarree()
-POINTS = False
+POINTS = True
 
 ###############################################################################
 # Inputs
@@ -99,8 +99,8 @@ for (fNum, fName) in enumerate(fNames):
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
                 color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                linewidth=.8, 
+                alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                linewidth=.5, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
             )
@@ -110,8 +110,8 @@ for (fNum, fName) in enumerate(fNames):
                 plt.plot(
                     sS['lon'], sS['lat'],
                     color=CMAP(SPEED_NORM(sE['speed'])), 
-                    alpha=1, # min(1.25*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                    marker='o', markersize=3,
+                    alpha=.9, # min(1.25*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                    marker='o', markersize=2.5,
                     markeredgewidth=.75, markeredgecolor='black',
                     linewidth=0,
                     transform=ccrs.Geodetic()
