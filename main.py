@@ -22,13 +22,13 @@ import matplotlib.patches as patches
     cst.CMAP_W, # cm.Purples_r,
     Normalize(vmin=0, vmax=6.5)
 )
-(FRATE, PRATE) = (1, 60)
+(FRATE, PRATE) = (3, 30)
 PAD = 0.005
 IMAGERY = cimgt.GoogleTiles() # None 
 PRE_MAP = None
 FIG_SIZE = (8, 8)
 PROJ = ccrs.PlateCarree()
-POINTS = True
+POINTS = False
 
 ###############################################################################
 # Inputs
@@ -37,7 +37,9 @@ PATH = '/home/chipdelmal/Documents/OneWheel'
 fNames = [
     '2021_05_13-01', '2021_05_13-02', 
     '2021_05_15-01', '2021_05_15-02',
-    '2021_05_16-01', '2021_05_16-02'
+    '2021_05_16-01', '2021_05_16-02',
+    '2021_05_19-01', '2021_05_19-02',
+    '2021_05_20-01', '2021_05_20-02'
 ]
 imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
 
@@ -99,7 +101,7 @@ for (fNum, fName) in enumerate(fNames):
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
                 color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                alpha=.25, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
                 linewidth=.5, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
