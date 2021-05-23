@@ -29,6 +29,7 @@ PRE_MAP = None
 FIG_SIZE = (8, 8)
 PROJ = ccrs.PlateCarree()
 POINTS = False
+WSIZE = 20
 
 ###############################################################################
 # Inputs
@@ -39,7 +40,10 @@ fNames = [
     '2021_05_15-01', '2021_05_15-02',
     '2021_05_16-01', '2021_05_16-02',
     '2021_05_19-01', '2021_05_19-02',
-    '2021_05_20-01', '2021_05_20-02'
+    '2021_05_20-01', '2021_05_20-02',
+    '2021_05_21-01', '2021_05_21-02',
+    '2021_05_22-01', '2021_05_22-02',
+    '2021_05_23-01', '2021_05_23-02', '2021_05_23-03'
 ]
 imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
 
@@ -78,12 +82,14 @@ else:
 plt.gcf().set_facecolor('black')
 # Iterate through frames ------------------------------------------------------
 tFrames = 0
+(fNum, fName) = (0, fNames[0])
 for (fNum, fName) in enumerate(fNames):
     ###########################################################################
     # Get Laps and segments
     ###########################################################################
     file = path.join(PATH, '{}.tcx'.format(fName))
     route = fun.getRouteFromFile(file)
+    route = fun.movingAverageRoute(route, wSize=WSIZE)
     meanRoute = fun.getRouteStat(route, fStat=np.median)
     ptsNum = len(route)
     ###########################################################################
@@ -101,7 +107,7 @@ for (fNum, fName) in enumerate(fNames):
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
                 color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=.25, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                alpha=.5, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
                 linewidth=.5, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
@@ -121,7 +127,7 @@ for (fNum, fName) in enumerate(fNames):
             # Filename and export ---------------------------------------------
             tixPad = str(tFrames).zfill(8)
             fimgName = path.join(PATH, 'img', '{}.png'.format(tixPad))
-            fig.savefig(fimgName, dpi=300, bbox_inches='tight', pad_inches=0)
+            fig.savefig(fimgName, dpi=200, bbox_inches='tight', pad_inches=0)
             # Update frames counter -------------------------------------------
             tFrames = tFrames+1
     sys.stdout.write("\033[K")
@@ -130,3 +136,5 @@ plt.clf()
 plt.cla() 
 plt.close(fig)
 plt.gcf()
+
+

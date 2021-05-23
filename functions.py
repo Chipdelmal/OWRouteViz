@@ -1,4 +1,5 @@
 
+import pandas as pd
 import numpy as np
 import pytz as pytz
 import xmltodict as xtd
@@ -87,3 +88,22 @@ def getBBoxFromFiles(filePaths):
     boxUnravelled = [[i[k] for i in bboxPts] for k in (mtrs)]
     bbox = {k: (np.min(i), np.max(i)) for (k, i) in zip(mtrs, boxUnravelled)}
     return bbox
+
+
+def movingAverage(numbersList, wSize=5):
+    numbers_series = pd.Series(numbersList)
+    windows = numbers_series.rolling(wSize, min_periods=1)
+    moving_averages = windows.median()
+    return moving_averages.tolist()
+
+
+def movingAverageRoute(
+        route, wSize=10, 
+        filtered=['lat', 'lon', 'alt', 'speed']
+    ):
+    numbers = [[i[j] for i in route] for j in filtered]
+    zipped = list(zip(*[movingAverage(i, wSize=wSize) for i in numbers]))
+    for (kix, fl) in enumerate(filtered):
+        for (ix, r) in enumerate(route):
+            route[ix][fl]=zipped[ix][kix]
+    return route
