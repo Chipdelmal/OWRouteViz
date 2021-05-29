@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import pytz as pytz
 from os import path
+from glob import glob
 import functions as fun
 import constants as cst
 import xmltodict as xtd
@@ -22,35 +23,25 @@ import matplotlib.patches as patches
     cst.CMAP_W, # cm.Purples_r,
     Normalize(vmin=0, vmax=6.5)
 )
-(FRATE, PRATE) = (3, 30)
-PAD = 0.005
-IMAGERY = cimgt.GoogleTiles() # None 
+(FRATE, PRATE) = (2, 30)
+(PAD, FIG_SIZE) = (0.005, (8, 8))
+IMAGERY = None # cimgt.GoogleTiles() # None 
 PRE_MAP = None
-FIG_SIZE = (8, 8)
 PROJ = ccrs.PlateCarree()
 POINTS = False
-WSIZE = 20
+WSIZE = 100
 
 ###############################################################################
 # Inputs
 ###############################################################################
 PATH = '/home/chipdelmal/Documents/OneWheel'
-fNames = [
-    '2021_05_13-01', '2021_05_13-02', 
-    '2021_05_15-01', '2021_05_15-02',
-    '2021_05_16-01', '2021_05_16-02',
-    '2021_05_19-01', '2021_05_19-02',
-    '2021_05_20-01', '2021_05_20-02',
-    '2021_05_21-01', '2021_05_21-02',
-    '2021_05_22-01', '2021_05_22-02',
-    '2021_05_23-01', '2021_05_23-02', '2021_05_23-03'
-]
+fPaths = sorted(glob(path.join(PATH, '*.tcx')))
+fNames = [path.split(i)[-1].split('.')[0] for i in fPaths]
 imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
 
 ###############################################################################
 # Get BBox
 ###############################################################################
-fPaths = [path.join(PATH, '{}.tcx'.format(fName)) for fName in fNames]
 bbox = fun.getBBoxFromFiles(fPaths)
 extent = [
     bbox['lon'][0]-PAD, bbox['lon'][1]+PAD, 
@@ -107,12 +98,20 @@ for (fNum, fName) in enumerate(fNames):
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
                 color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=.5, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                linewidth=.5, 
+                alpha=1, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                linewidth=1, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
             )
             ax.set_extent(extent, crs=ccrs.PlateCarree())
+            # ax.add_patch(
+            #     patches.Rectangle(
+            #         (extent[0], extent[2]),
+            #         (extent[1]-extent[0]), (extent[3]-extent[2]),
+            #         edgecolor='black', facecolor='#00000002',
+            #         fill=True, zorder=10
+            #     )
+            # )
             # Plot markers ----------------------------------------------------
             if (POINTS) and (tix%PRATE==0) and (tix<ptsNum-PRATE):
                 plt.plot(
