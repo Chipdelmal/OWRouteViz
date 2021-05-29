@@ -1,6 +1,4 @@
-# onewheelViz
-
-Visualizing OneWheel rides.
+# OWheelViz: Visualizing OneWheel rides.
 
 
-
+**Under development**
