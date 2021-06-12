@@ -93,7 +93,7 @@ def getBBoxFromFiles(filePaths):
 def movingAverage(numbersList, wSize=5):
     numbers_series = pd.Series(numbersList)
     windows = numbers_series.rolling(wSize, min_periods=1)
-    moving_averages = windows.median()
+    moving_averages = windows.mean()
     return moving_averages.tolist()
 
 

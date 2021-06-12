@@ -23,13 +23,13 @@ import matplotlib.patches as patches
     cst.CMAP_W, # cm.Purples_r,
     Normalize(vmin=0, vmax=6.5)
 )
-(FRATE, PRATE) = (2, 30)
+(FRATE, PRATE) = (3, 30)
 (PAD, FIG_SIZE) = (0.005, (8, 8))
 IMAGERY = None # cimgt.GoogleTiles() # None 
 PRE_MAP = None
 PROJ = ccrs.PlateCarree()
 POINTS = False
-WSIZE = 100
+WSIZE = 25
 
 ###############################################################################
 # Inputs
@@ -47,7 +47,6 @@ extent = [
     bbox['lon'][0]-PAD, bbox['lon'][1]+PAD, 
     bbox['lat'][0]-PAD, bbox['lat'][1]+PAD
 ]
-
 ###############################################################################
 # Generate Figure
 ###############################################################################
@@ -97,9 +96,9 @@ for (fNum, fName) in enumerate(fNames):
             plt.plot(
                 [sS['lon'], sE['lon']], 
                 [sS['lat'], sE['lat']],
-                color=CMAP(SPEED_NORM(sE['speed'])),
-                alpha=1, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                linewidth=1, 
+                color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])),
+                alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                linewidth=2.5, 
                 solid_capstyle='round',
                 transform=ccrs.Geodetic()
             )
