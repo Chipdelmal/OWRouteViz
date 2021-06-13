@@ -20,15 +20,15 @@ import matplotlib.patches as patches
 # Constants
 ###############################################################################
 (CMAP, SPEED_NORM) = (
-    cst.CMAP_W, # cm.Purples_r,
+    cm.OrRd_r, # cst.CMAP_W, # 
     Normalize(vmin=0, vmax=6.5)
 )
-(FRATE, PRATE) = (3, 30)
+(FRATE, PRATE) = (5, 1)
 (PAD, FIG_SIZE) = (0.005, (8, 8))
-IMAGERY = None # cimgt.GoogleTiles() # None 
+IMAGERY = cimgt.GoogleTiles() # None 
 PRE_MAP = None
 PROJ = ccrs.PlateCarree()
-POINTS = False
+(TRACE, POINTS) = (True, False)
 WSIZE = 25
 
 ###############################################################################
@@ -63,7 +63,7 @@ if IMAGERY is not None:
         patches.Rectangle(
             (extent[0], extent[2]),
             (extent[1]-extent[0]), (extent[3]-extent[2]),
-            edgecolor=None, facecolor='#000000E8',
+            edgecolor=None, facecolor='#000000E0',
             fill=True
         )
     )
@@ -93,36 +93,30 @@ for (fNum, fName) in enumerate(fNames):
         if (tix%FRATE==0) and (tix<ptsNum-FRATE):
             (sS, sE) = [route[i] for i in (tix, tix+FRATE)]
             # Render new elements ---------------------------------------------
-            plt.plot(
-                [sS['lon'], sE['lon']], 
-                [sS['lat'], sE['lat']],
-                color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])),
-                alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-                linewidth=2.5, 
-                solid_capstyle='round',
-                transform=ccrs.Geodetic()
-            )
-            ax.set_extent(extent, crs=ccrs.PlateCarree())
-            # ax.add_patch(
-            #     patches.Rectangle(
-            #         (extent[0], extent[2]),
-            #         (extent[1]-extent[0]), (extent[3]-extent[2]),
-            #         edgecolor='black', facecolor='#00000002',
-            #         fill=True, zorder=10
-            #     )
-            # )
+            if TRACE:
+                plt.plot(
+                    [sS['lon'], sE['lon']], 
+                    [sS['lat'], sE['lat']],
+                    color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])),
+                    alpha=.125, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                    linewidth=2.5, 
+                    solid_capstyle='round',
+                    solid_joinstyle='round',
+                    transform=ccrs.Geodetic()
+                )
             # Plot markers ----------------------------------------------------
             if (POINTS) and (tix%PRATE==0) and (tix<ptsNum-PRATE):
                 plt.plot(
                     sS['lon'], sS['lat'],
-                    color=CMAP(SPEED_NORM(sE['speed'])), 
-                    alpha=.9, # min(1.25*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
+                    color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])), 
+                    alpha=.25, # min(1.25*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
                     marker='o', markersize=2.5,
-                    markeredgewidth=.75, markeredgecolor='black',
+                    markeredgewidth=.1, markeredgecolor='black',
                     linewidth=0,
                     transform=ccrs.Geodetic()
                 )
             # Filename and export ---------------------------------------------
+            ax.set_extent(extent, crs=ccrs.PlateCarree())
             tixPad = str(tFrames).zfill(8)
             fimgName = path.join(PATH, 'img', '{}.png'.format(tixPad))
             fig.savefig(fimgName, dpi=200, bbox_inches='tight', pad_inches=0)

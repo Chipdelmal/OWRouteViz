@@ -34,7 +34,7 @@ WSIZE = 25
 PATH = '/home/chipdelmal/Documents/OneWheel'
 fPaths = sorted(glob(path.join(PATH, '*.tcx')))
 fNames = [path.split(i)[-1].split('.')[0] for i in fPaths]
-imgFgPth = path.join(PATH, 'img', "2021_05_13_01-final.png")
+imgFgPth = path.join(PATH, 'img', "FullRoutes.png")
 ###############################################################################
 # Get BBox
 ###############################################################################
@@ -70,7 +70,7 @@ if IMAGERY is not None:
 ax.add_patch(
     patches.Rectangle(
         (extent[0], extent[2]), (extent[1]-extent[0]), (extent[3]-extent[2]),
-        edgecolor=None, facecolor='#000000DD',
+        edgecolor=None, facecolor='#000000E0',
         fill=True
     )
 )
