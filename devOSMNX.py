@@ -17,19 +17,17 @@ import cartopy.io.img_tiles as cimgt
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 import matplotlib.patches as patches
+from collections import OrderedDict
+import warnings
+warnings.filterwarnings("ignore")
+ox.config(log_console=True, use_cache=True)
 
 ###############################################################################
 # Constants
 ###############################################################################
-(CMAP, SPEED_NORM) = (
-    cst.CMAP_W, Normalize(vmin=0, vmax=6.5)
-)
-(PAD, FIG_SIZE) = (0.005, (12, 12))
-IMAGERY = cimgt.GoogleTiles() # None 
-PRE_MAP = None
-PROJ = ccrs.PlateCarree()
-POINTS = False
 WSIZE = 25
+(PAD, FIG_SIZE) = (0.005, (12, 12))
+(CMAP, SPEED_NORM) = (cst.CMAP_W, Normalize(vmin=0, vmax=6.5))
 ###############################################################################
 # Inputs
 ###############################################################################
@@ -38,18 +36,18 @@ fPaths = sorted(glob(path.join(PATH, '*.tcx')))
 fNames = [path.split(i)[-1].split('.')[0] for i in fPaths]
 imgFgPth = path.join(PATH, 'img', "FullRoutes.png")
 ###############################################################################
-# Get BBox
+# Get BBox and Graph Object
 ###############################################################################
 bbox = fun.getBBoxFromFiles(fPaths)
 extent = [
     bbox['lon'][0]-PAD, bbox['lon'][1]+PAD, 
     bbox['lat'][0]-PAD, bbox['lat'][1]+PAD
 ]
-###############################################################################
-# Generate Figure
-###############################################################################
-tFrames = 0
-(fNum, fName) = (0, fNames[0])
+# Get graph object ------------------------------------------------------------
+G = ox.graph.graph_from_bbox(
+    extent[2], extent[3],  extent[0], extent[1], 
+    retain_all=True, simplify=True, network_type='all'
+)
 ###############################################################################
 # Get Laps and segments
 ###############################################################################
@@ -62,43 +60,30 @@ for fName in fNames:
     ptsNum = len(route)
     routes.append(route)
 ###############################################################################
-# Iterate segments
+# Get Laps and segments
 ###############################################################################
-(fig, ax) = (plt.figure(figsize=FIG_SIZE), plt.axes(projection=PROJ))
-ax.set_extent(extent, crs=PROJ)
-# Add imagery if available ----------------------------------------------------
-if IMAGERY is not None:
-    ax.add_image(IMAGERY, 14)
-ax.add_patch(
-    patches.Rectangle(
-        (extent[0], extent[2]), (extent[1]-extent[0]), (extent[3]-extent[2]),
-        edgecolor=None, facecolor='#000000E0',
-        fill=True
-    )
+steps = 10
+route = routes[8]
+# Segment the route in chunks -------------------------------------------------
+segRun = [(i['lat'], i['lon']) for i in route[::int(len(route)/steps)]]
+segRun = segRun + [(i['lat'], i['lon']) for i in [route[-1]]]
+# Get shortest segments between chunks ----------------------------------------
+path = []
+for nix in range(len(segRun)-2):
+    org = ox.get_nearest_node(G, segRun[nix])
+    dst = ox.get_nearest_node(G, segRun[nix+1])
+    path.extend(nx.shortest_path(G, org, dst, weight='length'))
+path = list(OrderedDict.fromkeys(path))
+# path = ox.distance.nearest_nodes(
+#     G, [i[1] for i in segRun], [i[0] for i in segRun]
+# )
+
+fRoute = [path[:], path[:]]
+cols = ['#4361ee50'] * len(fRoute)
+ox.plot_graph_routes(
+    G, fRoute, 
+    route_colors=cols,
+    bgcolor='#061529', 
+    edge_color='#ffffff25', edge_linewidth=1,
+    node_size=0, orig_dest_size=0
 )
-for route in routes:
-    plt.plot(
-        [i['lon'] for i in route], 
-        [i['lat'] for i in route],
-        color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])),
-        alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-        linewidth=2.5, 
-        solid_capstyle='round',
-        transform=ccrs.Geodetic()
-    )
-    # plt.plot(
-    #     [i['lon'] for i in route], 
-    #     [i['lat'] for i in route],
-    #     color='#ffffff', # CMAP(SPEED_NORM(sE['speed'])),
-    #     alpha=.75, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-    #     linewidth=.5, 
-    #     solid_capstyle='round',
-    #     transform=ccrs.Geodetic()
-    # )
-ax.set_extent(extent, crs=ccrs.PlateCarree())
-fig.savefig(imgFgPth, dpi=500, bbox_inches='tight', pad_inches=0)
-# Clearing and closing (fig, ax) ----------------------------------------------
-# plt.clf()
-# plt.cla() 
-# plt.close(fig)
-# plt.gcf()
