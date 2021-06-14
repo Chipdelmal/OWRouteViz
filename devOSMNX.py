@@ -46,7 +46,8 @@ extent = [
 # Get graph object ------------------------------------------------------------
 G = ox.graph.graph_from_bbox(
     extent[2], extent[3],  extent[0], extent[1], 
-    retain_all=True, simplify=True, network_type='all'
+    retain_all=True, simplify=False, network_type='all',
+    truncate_by_edge=True
 )
 ###############################################################################
 # Get Laps and segments
@@ -59,30 +60,36 @@ for fName in fNames:
     meanRoute = fun.getRouteStat(route, fStat=np.median)
     ptsNum = len(route)
     routes.append(route)
+Gc = ox.utils_graph.get_largest_component(G, strongly=False)
 ###############################################################################
 # Get Laps and segments
 ###############################################################################
-steps = 10
-route = routes[8]
+steps = 100
+route = routes[3]
 # Segment the route in chunks -------------------------------------------------
-segRun = [(i['lat'], i['lon']) for i in route[::int(len(route)/steps)]]
-segRun = segRun + [(i['lat'], i['lon']) for i in [route[-1]]]
+segRun = [(i['lat'], i['lon']) for i in route[::100]]
+# segRun = segRun + [(i['lat'], i['lon']) for i in [route[-1]]] 
+# # int(len(route)/steps)
 # Get shortest segments between chunks ----------------------------------------
 path = []
-for nix in range(len(segRun)-2):
+for nix in range(len(segRun)-1):
     org = ox.get_nearest_node(G, segRun[nix])
     dst = ox.get_nearest_node(G, segRun[nix+1])
-    path.extend(nx.shortest_path(G, org, dst, weight='length'))
-path = list(OrderedDict.fromkeys(path))
+    # path.extend(nx.shortest_path(G, org, dst, weight='length'))
+    if nx.has_path(G, org, dst):
+        path.append(nx.shortest_path(G, org, dst, weight='length'))
+# path = list(OrderedDict.fromkeys(path))
 # path = ox.distance.nearest_nodes(
 #     G, [i[1] for i in segRun], [i[0] for i in segRun]
 # )
+# path = list(OrderedDict.fromkeys(path))
 
+# [[i for i in list(G.nodes(data=True)) if i[0] == j] for j in path]
 fRoute = [path[:], path[:]]
 cols = ['#4361ee50'] * len(fRoute)
 ox.plot_graph_routes(
-    G, fRoute, 
-    route_colors=cols,
+    G, path, 
+    # route_colors=cols,
     bgcolor='#061529', 
     edge_color='#ffffff25', edge_linewidth=1,
     node_size=0, orig_dest_size=0

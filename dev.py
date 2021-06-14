@@ -17,6 +17,7 @@ import cartopy.io.img_tiles as cimgt
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 import matplotlib.patches as patches
+ox.config(log_console=True, use_cache=True)
 
 ###############################################################################
 # Constants
@@ -25,10 +26,8 @@ import matplotlib.patches as patches
     cst.CMAP_W, Normalize(vmin=0, vmax=6.5)
 )
 (PAD, FIG_SIZE) = (0.005, (12, 12))
-IMAGERY = cimgt.GoogleTiles() # None 
-PRE_MAP = None
+(OSMNX, IMAGERY) = (True, None) # cimgt.GoogleTiles() # None 
 PROJ = ccrs.PlateCarree()
-POINTS = False
 WSIZE = 25
 ###############################################################################
 # Inputs
@@ -62,43 +61,44 @@ for fName in fNames:
     ptsNum = len(route)
     routes.append(route)
 ###############################################################################
-# Iterate segments
+# Create figure
 ###############################################################################
 (fig, ax) = (plt.figure(figsize=FIG_SIZE), plt.axes(projection=PROJ))
-ax.set_extent(extent, crs=PROJ)
 # Add imagery if available ----------------------------------------------------
 if IMAGERY is not None:
     ax.add_image(IMAGERY, 14)
+# Get graph object ------------------------------------------------------------
+if OSMNX:
+    G = ox.graph.graph_from_bbox(
+        extent[2], extent[3],  extent[0], extent[1], 
+        retain_all=True, simplify=False, network_type='drive',
+        truncate_by_edge=False
+    )
+# Add black background --------------------------------------------------------
 ax.add_patch(
     patches.Rectangle(
         (extent[0], extent[2]), (extent[1]-extent[0]), (extent[3]-extent[2]),
-        edgecolor=None, facecolor='#000000E0',
-        fill=True
+        edgecolor=None, facecolor='#000000',
+        fill=True, zorder=-3
     )
 )
+# Plot routes -----------------------------------------------------------------
 for route in routes:
     plt.plot(
         [i['lon'] for i in route], 
         [i['lat'] for i in route],
-        color='#1F75FE', # CMAP(SPEED_NORM(sE['speed'])),
-        alpha=.2, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-        linewidth=2.5, 
+        color='#ffffff',
+        alpha=.4,
+        linewidth=2,
         solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
-    # plt.plot(
-    #     [i['lon'] for i in route], 
-    #     [i['lat'] for i in route],
-    #     color='#ffffff', # CMAP(SPEED_NORM(sE['speed'])),
-    #     alpha=.75, # min(2*CMAP(SPEED_NORM(sE['speed']))[-1], 1),
-    #     linewidth=.5, 
-    #     solid_capstyle='round',
-    #     transform=ccrs.Geodetic()
-    # )
-ax.set_extent(extent, crs=ccrs.PlateCarree())
+ox.plot_graph(
+    G, ax=ax, show=True, close=False,
+    edge_color='#1F75FE55', edge_linewidth=1,
+    node_size=0
+)
+ax.set_extent(extent, crs=PROJ)
 fig.savefig(imgFgPth, dpi=500, bbox_inches='tight', pad_inches=0)
 # Clearing and closing (fig, ax) ----------------------------------------------
-# plt.clf()
-# plt.cla() 
-# plt.close(fig)
-# plt.gcf()
+plt.close(fig)
