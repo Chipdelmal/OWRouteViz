@@ -19,16 +19,20 @@ from matplotlib.colors import Normalize
 import matplotlib.patches as patches
 ox.config(log_console=True, use_cache=True)
 
+
+(AUTO_BOX, WSIZE) = (False, 50)
+(OSMNX, IMAGERY) = (True, None) # cimgt.GoogleTiles() # None 
 ###############################################################################
 # Constants
 ###############################################################################
 (CMAP, SPEED_NORM) = (
     cst.CMAP_W, Normalize(vmin=0, vmax=6.5)
 )
-(PAD, FIG_SIZE) = (0.005, (12, 12))
-(OSMNX, IMAGERY) = (True, None) # cimgt.GoogleTiles() # None 
+if AUTO_BOX:
+    (PAD, FIG_SIZE) = (0.005, (12, 12))
+else:
+    (PAD, FIG_SIZE) = (0.04, (12, 12))
 PROJ = ccrs.PlateCarree()
-WSIZE = 25
 ###############################################################################
 # Inputs
 ###############################################################################
@@ -44,6 +48,16 @@ extent = [
     bbox['lon'][0]-PAD, bbox['lon'][1]+PAD, 
     bbox['lat'][0]-PAD, bbox['lat'][1]+PAD
 ]
+if not AUTO_BOX:
+    centroid = [
+        np.mean([bbox['lon'][1], bbox['lon'][0]]),
+        np.mean([bbox['lat'][1], bbox['lat'][0]])
+    ]
+    extent = []
+    extent.append(centroid[0]-PAD*1.275)
+    extent.append(centroid[0]+PAD*1.275)
+    extent.append(centroid[1]-PAD)
+    extent.append(centroid[1]+PAD)
 ###############################################################################
 # Generate Figure
 ###############################################################################
@@ -88,14 +102,13 @@ for route in routes:
         [i['lon'] for i in route], 
         [i['lat'] for i in route],
         color='#ffffff',
-        alpha=.4,
-        linewidth=2,
+        alpha=.35, linewidth=.75,
         solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
 ox.plot_graph(
     G, ax=ax, show=True, close=False,
-    edge_color='#1F75FE55', edge_linewidth=1,
+    edge_color='#1F75FE25', edge_linewidth=.75,
     node_size=0
 )
 ax.set_extent(extent, crs=PROJ)
