@@ -13,13 +13,18 @@ ox.config(log_console=True, use_cache=True)
 PATH = '/home/chipdelmal/Documents/OneWheel'
 DPI = 500
 DST = 5000
+
+degs = [fun.decdeg2dms(i) for i in point]
+degs = [[int(i) for i in j] for j in degs]
+(lat, lon) = ["{}° {}' {}".format(*i) for i in degs]
 ###############################################################################
 # Colors
 ###############################################################################
 bgColor = "#000000"
-bdColor = '#ffffff22'
+bdColor = '#ffffff55'
 rdColor = '#000b82'
 rdAlpha = .75
+rdScale = 8
 ###############################################################################
 # Get Network
 ###############################################################################
@@ -40,25 +45,23 @@ for uu, vv, kkey, ddata in G.edges(keys=True, data=True):
     v.append(vv)
     key.append(kkey)
     data.append(ddata)    
-# List to store colors
-roadColors = []
-roadWidths = []
+(roadColors, roadWidths) = ([], [])
 for item in data:
     if "length" in item.keys():
         if item["length"] <= 100:
-            linewidth = 0.10*6
+            linewidth = 0.10*rdScale
             color = fun.lighten(rdColor, .1)
         elif item["length"] > 100 and item["length"] <= 200:
-            linewidth = 0.15*6
+            linewidth = 0.15*rdScale
             color = fun.lighten(rdColor, .2)
         elif item["length"] > 200 and item["length"] <= 400:
-            linewidth = 0.25*6  
+            linewidth = 0.25*rdScale
             color = fun.lighten(rdColor, .3)
         elif item["length"] > 400 and item["length"] <= 800:
-            linewidth = 0.35*6
+            linewidth = 0.35*rdScale
             color = fun.lighten(rdColor, .4)
         else:
-            linewidth = 0.45*6
+            linewidth = 0.45*rdScale
             color = fun.lighten(rdColor, .5)
     else:
         color = rdColor
@@ -76,20 +79,24 @@ for item in data:
 )
 if bldg:
     (fig, ax) = ox.plot_footprints(
-        gdf,
+        gdf, ax=ax,
         color=bdColor,
-        ax=ax, dpi=DPI, save=False, 
+        dpi=DPI, save=False, 
         show=False, close=False
     )
 ax.scatter(
     point[1], point[0], marker="x",
     c='#ff006e00', s=100, zorder=10
 )
-ax.annotate(
-    label, xy=(0, .5), xytext=(.5, .5), 
-    xycoords='figure fraction', textcoords='figure fraction',
-    horizontalalignment='center', verticalalignment='center',
-    color='#ffffffCC', fontsize=250
+ax.text(
+    0.5, 0.85, '{}'.format(label), 
+    horizontalalignment='center', verticalalignment='center', 
+    transform=ax.transAxes, color='#ffffffDD', fontsize=250
+)
+ax.text(
+    0.5, 0.15, 'N: {}\nW: {}'.format(lat, lon), 
+    horizontalalignment='center', verticalalignment='center', 
+    transform=ax.transAxes, color='#ffffffDD', fontsize=75
 )
 ###############################################################################
 # Export
