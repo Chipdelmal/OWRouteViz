@@ -21,7 +21,7 @@ degs = [[int(i) for i in j] for j in degs]
 # Colors
 ###############################################################################
 bgColor = "#000000"
-bdColor = '#ffffff55'
+bdColor = '#ffffff11'
 rdColor = '#000b82'
 rdAlpha = .75
 rdScale = 8
@@ -84,10 +84,10 @@ if bldg:
         dpi=DPI, save=False, 
         show=False, close=False
     )
-ax.scatter(
-    point[1], point[0], marker="x",
-    c='#ff006e00', s=100, zorder=10
-)
+# ax.scatter(
+#     point[1], point[0], marker="x",
+#     c='#ff006e', s=100, zorder=10
+# )
 ax.text(
     0.5, 0.85, '{}'.format(label), 
     horizontalalignment='center', verticalalignment='center', 
@@ -98,6 +98,8 @@ ax.text(
     horizontalalignment='center', verticalalignment='center', 
     transform=ax.transAxes, color='#ffffffDD', fontsize=75
 )
+ax.vlines([.5], 0, 1, transform=ax.transAxes, colors='#ffffff55', ls='--', zorder=5)
+ax.hlines([.5], 0, 1, transform=ax.transAxes, colors='#ffffff55', ls='--',zorder=5)
 ###############################################################################
 # Export
 ###############################################################################

@@ -39,7 +39,7 @@ PROJ = ccrs.PlateCarree()
 PATH = '/home/chipdelmal/Documents/OneWheel'
 fPaths = sorted(glob(path.join(PATH, '*.tcx')))
 fNames = [path.split(i)[-1].split('.')[0] for i in fPaths]
-imgFgPth = path.join(PATH, 'img', "FullRoutes.png")
+imgFgPth = path.join(PATH, "OneWheel.png")
 ###############################################################################
 # Get BBox
 ###############################################################################
