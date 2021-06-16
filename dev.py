@@ -20,7 +20,7 @@ import matplotlib.patches as patches
 ox.config(log_console=True, use_cache=True)
 
 
-(AUTO_BOX, WSIZE) = (False, 50)
+(AUTO_BOX, WSIZE) = (False, 30)
 (OSMNX, IMAGERY) = (True, None) # cimgt.GoogleTiles() # None 
 ###############################################################################
 # Constants
