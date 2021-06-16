@@ -1,6 +1,7 @@
 # Media and cache
 cache
 *.mp4
+points.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
