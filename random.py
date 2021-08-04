@@ -1,8 +1,9 @@
 
-import functions as fun
+import subprocess
 import osmnx as ox
 from os import path
 import points as pts
+import functions as fun
 import matplotlib.pyplot as plt
 ox.config(log_console=True, use_cache=True)
 
@@ -12,9 +13,8 @@ ox.config(log_console=True, use_cache=True)
 (point, label, fName, bldg, distance) = pts.DNT
 
 PATH = '/home/chipdelmal/Documents/OneWheel/maps/'
-DPI = 100
+DPI = 300
 DST = distance
-
 ###########################################################################
 # Colors
 ###########################################################################
@@ -26,9 +26,8 @@ degs = [[i for i in j] for j in degs]
 ###########################################################################
 bgColor = "#100F0F00"
 bdColor = '#ffffff11'
-rdColor = '#000FB8' # '#000b82'
-rdAlpha = .6
-rdScale = 2
+rdColor = '#000000'# '#000FB8' # '#000b82'
+(rdAlpha, rdScale) = (1, 5)
 ###########################################################################
 # Get Network
 ###########################################################################
@@ -53,20 +52,20 @@ for uu, vv, kkey, ddata in G.edges(keys=True, data=True):
 for item in data:
     if "length" in item.keys():
         if item["length"] <= 100:
-            linewidth = 0.05*rdScale
-            color = fun.lighten(rdColor, .4)
-        elif item["length"] > 100 and item["length"] <= 200:
             linewidth = 0.1*rdScale
-            color = fun.lighten(rdColor, .35)
+            color = fun.lighten(rdColor, .65)
+        elif item["length"] > 100 and item["length"] <= 200:
+            linewidth = 0.2*rdScale
+            color = fun.lighten(rdColor, .75)
         elif item["length"] > 200 and item["length"] <= 400:
             linewidth = 0.3*rdScale
-            color = fun.lighten(rdColor, .1)
+            color = fun.lighten(rdColor, .85)
         elif item["length"] > 400 and item["length"] <= 800:
             linewidth = 0.5*rdScale
-            color = fun.lighten(rdColor, .05)
+            color = fun.lighten(rdColor, 0.95)
         else:
             linewidth = 0.6*rdScale
-            color = fun.lighten(rdColor, .01)
+            color = fun.lighten(rdColor, 1.0)
     else:
         color = rdColor
         linewidth = 0.10
@@ -87,19 +86,20 @@ if bldg:
         color=bdColor, dpi=DPI, save=False, show=False, close=False
     )
 ax.scatter(
-    point[1], point[0], marker="o",
-    zorder=10, facecolors='#ffffffAA', 
-    s=500, edgecolors='#ffffffAA', linewidth=5
+    point[1], point[0], marker="x",
+    zorder=10, color='#100F0FCC',
+    # facecolors='#000000AA', edgecolors='#000000AA',
+    s=7500, linewidth=5
 )
 ax.text(
-    0.5, 0.85, '{}'.format(label), 
+    0.5, 0.8, '{}'.format(label), family='Latin Modern Roman Unslanted',
     horizontalalignment='center', verticalalignment='center', 
-    transform=ax.transAxes, color='#ffffffDD', fontsize=250
+    transform=ax.transAxes, color='#100F0FDD', fontsize=300
 )
 ax.text(
-    0.5, 0.1, 'N: {}\nW: {}'.format(lat, lon), 
+    0.5, 0.15, 'N: {}\nW: {}'.format(lat, lon), family='Latin Modern Roman Unslanted',
     horizontalalignment='center', verticalalignment='center', 
-    transform=ax.transAxes, color='#ffffffDD', fontsize=75
+    transform=ax.transAxes, color='#100F0FDD', fontsize=150
 )
 # ax.vlines([.5], 0, 1, transform=ax.transAxes, colors='#ffffffBB', ls='--', lw=1, zorder=5)
 # ax.hlines([.5], 0, 1, transform=ax.transAxes, colors='#ffffffBB', ls='--', lw=1, zorder=5)
@@ -116,3 +116,30 @@ plt.clf()
 plt.cla() 
 plt.close(fig)
 plt.gcf()
+###########################################################################
+# Inkscape
+###########################################################################
+fin = open(path.join(PATH, 'textured.svg'), "rt")
+data = fin.read()
+data = data.replace('MAP_IMG', fName)
+fin.close()
+fin = open(path.join(PATH, 'textured.svg'), "wt")
+fin.write(data)
+fin.close()
+# Export composite image --------------------------------------------------
+cmd = [
+    'inkscape', 
+    '--export-type=png', 
+    '--export-dpi='+str(DPI), 
+    path.join(PATH, 'textured.svg'), 
+    '--export-filename='+path.join(PATH, 'MAP_'+fName+'.png')
+]
+subprocess.call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+# Return svg to original state --------------------------------------------
+fin = open(path.join(PATH, 'textured.svg'), "rt")
+data = fin.read()
+data = data.replace(fName,'MAP_IMG')
+fin.close()
+fin = open(path.join(PATH, 'textured.svg'), "wt")
+fin.write(data)
+fin.close()

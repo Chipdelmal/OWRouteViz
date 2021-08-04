@@ -31,7 +31,7 @@ ox.config(log_console=True, use_cache=True)
 if AUTO_BOX:
     (PAD, FIG_SIZE) = (0.005, (12, 12))
 else:
-    (PAD, FIG_SIZE) = (0.04, (12, 12))
+    (PAD, FIG_SIZE) = (0.025, (12, 12))
 PROJ = ccrs.PlateCarree()
 ###############################################################################
 # Inputs
@@ -102,7 +102,7 @@ for route in routes:
         [i['lon'] for i in route], 
         [i['lat'] for i in route],
         color='#ffffff',
-        alpha=.35, linewidth=.75,
+        alpha=.15, linewidth=2.5,
         solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
