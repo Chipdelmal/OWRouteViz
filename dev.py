@@ -31,12 +31,13 @@ ox.config(log_console=True, use_cache=True)
 if AUTO_BOX:
     (PAD, FIG_SIZE) = (0.005, (12, 12))
 else:
-    (PAD, FIG_SIZE) = (0.025, (12, 12))
+    (PAD, FIG_SIZE) = (0.035, (12, 12))
 PROJ = ccrs.PlateCarree()
 ###############################################################################
 # Inputs
 ###############################################################################
-PATH = '/home/chipdelmal/Documents/OneWheel'
+# PATH = '/home/chipdelmal/Documents/OneWheel'
+PATH = '/Users/sanchez.hmsc/odrive/Mega/OneWheel'
 fPaths = sorted(glob(path.join(PATH, '*.tcx')))
 fNames = [path.split(i)[-1].split('.')[0] for i in fPaths]
 imgFgPth = path.join(PATH, "OneWheel.png")
@@ -92,7 +93,7 @@ if OSMNX:
 ax.add_patch(
     patches.Rectangle(
         (extent[0], extent[2]), (extent[1]-extent[0]), (extent[3]-extent[2]),
-        edgecolor=None, facecolor='#000000',
+        edgecolor=None, facecolor='#ffffff',
         fill=True, zorder=-3
     )
 )
@@ -101,14 +102,14 @@ for route in routes:
     plt.plot(
         [i['lon'] for i in route], 
         [i['lat'] for i in route],
-        color='#ffffff',
-        alpha=.15, linewidth=2.5,
+        color='#f20089',
+        alpha=.25, linewidth=3,
         solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
 ox.plot_graph(
-    G, ax=ax, show=True, close=False,
-    edge_color='#1F75FE25', edge_linewidth=.75,
+    G, ax=ax, show=False, close=False,
+    edge_color='#8093f1', edge_linewidth=1,
     node_size=0
 )
 ax.set_extent(extent, crs=PROJ)

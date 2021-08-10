@@ -2,7 +2,7 @@
 import subprocess
 import osmnx as ox
 from os import path
-import points as pts
+# import points as pts
 import functions as fun
 import matplotlib.pyplot as plt
 ox.config(log_console=True, use_cache=True)
