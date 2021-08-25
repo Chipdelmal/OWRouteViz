@@ -103,13 +103,13 @@ for route in routes:
         [i['lon'] for i in route], 
         [i['lat'] for i in route],
         color='#f20089',
-        alpha=.25, linewidth=3,
+        alpha=.125, linewidth=3,
         solid_capstyle='round',
         transform=ccrs.Geodetic()
     )
 ox.plot_graph(
     G, ax=ax, show=False, close=False,
-    edge_color='#8093f1', edge_linewidth=1,
+    edge_color='#809bce', edge_linewidth=1,
     node_size=0
 )
 ax.set_extent(extent, crs=PROJ)
